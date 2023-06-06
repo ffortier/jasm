@@ -1,0 +1,54 @@
+load("@pypi//:requirements.bzl", "requirement")
+
+java_library(
+    name = "instruction",
+    srcs = [":instruction_java"] + glob(["src/main/java/**/*.java"]),
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "instructions_codegen",
+    srcs = ["instructions_codegen.py"],
+    args = [
+        "-i",
+        "$(location :instructions_csv)",
+        "-o",
+        "%s/src/main/java/jasm/instruction/Instructions.java" % package_name(),
+        "-c",
+        "Instruction",
+        "-p",
+        "jasm.instruction",
+    ],
+    data = [":instructions_csv"],
+    tags = [
+        "manual",
+        "no-sandbox",
+    ],
+    deps = [
+        requirement("pandas"),
+    ],
+)
+
+genrule(
+    name = "instruction_java",
+    srcs = [":instructions_csv"],
+    outs = ["src/main/java/jasm/instruction/Instruction.java"],
+    cmd = "$(location :instructions_codegen) -i $< -o $@ -c Instruction -p jasm.instruction",
+    tools = [":instructions_codegen"],
+)
+
+cc_binary(
+    name = "wasm_opcodes",
+    srcs = [
+        "wasm-opcodes.c",
+        "//third_party/v8:wasm_opcodes_h",
+    ],
+    copts = ["-I$(BINDIR)/third_party/v8"],
+)
+
+genrule(
+    name = "instructions_csv",
+    outs = ["instructions.csv"],
+    cmd = "$(location :wasm_opcodes) > $@",
+    tools = [":wasm_opcodes"],
+)

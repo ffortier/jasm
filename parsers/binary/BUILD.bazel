@@ -1,0 +1,17 @@
+java_binary(
+    name = "binary_main",
+    args = ["$(location //hello:hello_wasm)"],
+    data = ["//hello:hello_wasm"],
+    main_class = "jasm.binary.Main",
+    runtime_deps = [":binary"],
+)
+
+java_library(
+    name = "binary",
+    srcs = glob(
+        ["src/main/java/**/*.java"],
+    ),
+    deps = [
+        "//parsers/instruction",
+    ],
+)

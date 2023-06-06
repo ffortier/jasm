@@ -1,0 +1,12 @@
+genrule(
+    name = "hello_wasm",
+    srcs = ["hello.wat"],
+    outs = ["hello.wasm"],
+    cmd = "wat2wasm $< -o $@",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    ["hello.wat"],
+    visibility = ["//visibility:public"],
+)

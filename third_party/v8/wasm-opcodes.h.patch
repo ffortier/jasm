@@ -1,0 +1,101 @@
+5,30d4
+< #if !V8_ENABLE_WEBASSEMBLY
+< #error This header should only be included if WebAssembly is enabled.
+< #endif  // !V8_ENABLE_WEBASSEMBLY
+< 
+< #ifndef V8_WASM_WASM_OPCODES_H_
+< #define V8_WASM_WASM_OPCODES_H_
+< 
+< #include <memory>
+< 
+< #include "src/common/globals.h"
+< #include "src/common/message-template.h"
+< #include "src/wasm/value-type.h"
+< #include "src/wasm/wasm-constants.h"
+< 
+< namespace v8 {
+< namespace internal {
+< 
+< namespace wasm {
+< 
+< class WasmFeatures;
+< struct WasmModule;
+< 
+< V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+<                                            const FunctionSig& function);
+< V8_EXPORT_PRIVATE bool IsJSCompatibleSignature(const FunctionSig* sig);
+< 
+610,611c584,586
+< #define FOREACH_NUMERIC_OPCODE(V) \
+<   FOREACH_NUMERIC_OPCODE_WITH_SIG(V) FOREACH_NUMERIC_OPCODE_VARIADIC(V)
+---
+> #define FOREACH_NUMERIC_OPCODE(V)    \
+>   FOREACH_NUMERIC_OPCODE_WITH_SIG(V) \
+>   FOREACH_NUMERIC_OPCODE_VARIADIC(V)
+876,941d850
+< 
+< // Prefixed opcodes are encoded as 1 prefix byte, followed by LEB encoded
+< // opcode bytes. We internally encode them as {WasmOpcode} as follows:
+< // 1) non-prefixed opcodes use the opcode itself as {WasmOpcode} enum value;
+< // 2) prefixed opcodes in [0, 0xff] use {(prefix << 8) | opcode};
+< // 3) prefixed opcodes in [0x100, 0xfff] use {(prefix << 12) | opcode} (this is
+< //    only used for relaxed simd so far).
+< //
+< // This encoding is bijective (i.e. a one-to-one mapping in both directions).
+< // The used opcode ranges are:
+< // 1) [0, 0xff]  ->  no prefix, 8 bits opcode
+< // 2) [0xfb00, 0xfe00]  ->  prefix shifted by 8 bits, and 8 bits opcode
+< // 3) [0xfd100, 0xfdfff]  ->  prefix shifted by 12 bits, and 12 bits opcode
+< //                            (only [0xfd100, 0xfd1ff] used so far)
+< //
+< // This allows to compute back the prefix and the non-prefixed opcode from each
+< // WasmOpcode, see {WasmOpcodes::ExtractPrefix} and
+< // {ExtractPrefixedOpcodeBytes} (for testing).
+< enum WasmOpcode {
+< // Declare expression opcodes.
+< #define DECLARE_NAMED_ENUM(name, opcode, ...) kExpr##name = opcode,
+<   FOREACH_OPCODE(DECLARE_NAMED_ENUM)
+< #undef DECLARE_NAMED_ENUM
+< #define DECLARE_PREFIX(name, opcode) k##name##Prefix = opcode,
+<       FOREACH_PREFIX(DECLARE_PREFIX)
+< #undef DECLARE_PREFIX
+< };
+< 
+< enum TrapReason {
+< #define DECLARE_ENUM(name) k##name,
+<   FOREACH_WASM_TRAPREASON(DECLARE_ENUM)
+<   kTrapCount
+< #undef DECLARE_ENUM
+< };
+< 
+< // A collection of opcode-related static methods.
+< class V8_EXPORT_PRIVATE WasmOpcodes {
+<  public:
+<   static constexpr const char* OpcodeName(WasmOpcode);
+<   static constexpr const FunctionSig* Signature(WasmOpcode);
+<   static constexpr const FunctionSig* SignatureForAtomicOp(WasmOpcode opcode,
+<                                                            bool is_memory64);
+<   static constexpr const FunctionSig* AsmjsSignature(WasmOpcode);
+<   static constexpr bool IsPrefixOpcode(WasmOpcode);
+<   static constexpr bool IsControlOpcode(WasmOpcode);
+<   static constexpr bool IsExternRefOpcode(WasmOpcode);
+<   static constexpr bool IsThrowingOpcode(WasmOpcode);
+<   static constexpr bool IsRelaxedSimdOpcode(WasmOpcode);
+<   // Check whether the given opcode always jumps, i.e. all instructions after
+<   // this one in the current block are dead. Returns false for |end|.
+<   static constexpr bool IsUnconditionalJump(WasmOpcode);
+<   static constexpr bool IsBreakable(WasmOpcode);
+< 
+<   static constexpr MessageTemplate TrapReasonToMessageId(TrapReason);
+<   static constexpr TrapReason MessageIdToTrapReason(MessageTemplate message);
+< 
+<   // Extract the prefix byte (or 0x00) from a {WasmOpcode}.
+<   static constexpr uint8_t ExtractPrefix(WasmOpcode);
+<   static inline const char* TrapReasonMessage(TrapReason);
+< };
+< 
+< }  // namespace wasm
+< }  // namespace internal
+< }  // namespace v8
+< 
+< #endif  // V8_WASM_WASM_OPCODES_H_

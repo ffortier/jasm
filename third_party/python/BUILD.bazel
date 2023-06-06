@@ -1,0 +1,11 @@
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+# bazel run //third_party/python:requirements.update
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements_lock.txt",
+)
+
+exports_files(["requirements_lock.txt"])
