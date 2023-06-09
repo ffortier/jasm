@@ -5,6 +5,6 @@ genrule(
         "wasm-opcodes.h.patch",
     ],
     outs = ["wasm-opcodes.h"],
-    cmd = "patch $(location @v8_wasm_opcodes//file) $(location wasm-opcodes.h.patch) -o $@",
+    cmd = "patch --follow-symlinks $(location @v8_wasm_opcodes//file) $(location wasm-opcodes.h.patch) -o $@",
     visibility = ["//visibility:public"],
 )

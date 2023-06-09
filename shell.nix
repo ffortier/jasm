@@ -5,6 +5,7 @@ mkShell {
     buildifier
     wabt
     python311
+    gnupatch
   ];
 
   shellHook = ''
