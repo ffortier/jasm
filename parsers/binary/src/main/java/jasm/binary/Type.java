@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import jasm.instruction.BinaryReader;
+import jasm.io.BinaryReader;
 
 public sealed interface Type permits Type.I32Type, Type.FunctionType {
     static Type construct(BinaryReader binaryReader) throws IOException {

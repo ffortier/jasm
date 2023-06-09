@@ -4,6 +4,7 @@ java_library(
     name = "instruction",
     srcs = [":instruction_java"] + glob(["src/main/java/**/*.java"]),
     visibility = ["//visibility:public"],
+    deps = ["//common"],
 )
 
 py_binary(

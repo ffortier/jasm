@@ -3,7 +3,7 @@ package jasm.binary;
 import java.io.IOException;
 
 import jasm.binary.Code.Expression;
-import jasm.instruction.BinaryReader;
+import jasm.io.BinaryReader;
 import jasm.instruction.Instruction;
 
 public interface DataSegment {

@@ -2,12 +2,9 @@ package jasm.binary;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import jasm.instruction.BinaryReader;
+import jasm.io.BinaryReader;
 import jasm.instruction.Instruction;
 
 public sealed interface Code permits Code.Func, Code.Local, Code.Expression {

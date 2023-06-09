@@ -3,9 +3,8 @@ package jasm.binary;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import jasm.instruction.BinaryReader;
+import jasm.io.BinaryReader;
 
 public sealed interface Section
         permits Section.CustomSection, Section.TypeSection, Section.ImportSection, Section.FunctionSection,
@@ -13,7 +12,7 @@ public sealed interface Section
         Section.GlobalSection, Section.ExportSection, Section.StartSection, Section.ElementSection, Section.CodeSection,
         Section.DataSection,
         Section.ExtraSection {
-    List<Main.SectionConstructor<?>> CONSTRUCTORS = List.of(
+    List<Module.SectionConstructor<?>> CONSTRUCTORS = List.of(
             CustomSection::from,
             TypeSection::from,
             ImportSection::from,
@@ -31,7 +30,7 @@ public sealed interface Section
         final var sectionType = reader.u32().intValueExact();
         final var constructor = sectionType < Section.CONSTRUCTORS.size()
                 ? CONSTRUCTORS.get(sectionType)
-                : (Main.SectionConstructor<?>) ExtraSection::from;
+                : (Module.SectionConstructor<?>) ExtraSection::from;
 
         return reader.slice(constructor::from);
     }
@@ -55,7 +54,6 @@ public sealed interface Section
 
             return new TypeSection(types);
         }
-
     }
 
     record ImportSection(List<Import> imports) implements Section {
@@ -66,11 +64,11 @@ public sealed interface Section
         }
     }
 
-    record FunctionSection(List<Integer> typeIndices) implements Section {
+    record FunctionSection(List<BigInteger> typeIndices) implements Section {
         static FunctionSection from(BinaryReader binaryReader) throws IOException {
             final var typeIndices = binaryReader.vec(BinaryReader::u32);
 
-            return new FunctionSection(typeIndices.stream().map(BigInteger::intValueExact).toList());
+            return new FunctionSection(typeIndices);
         }
     }
 
@@ -103,9 +101,9 @@ public sealed interface Section
         }
     }
 
-    record StartSection(int functionIndex) implements Section {
+    record StartSection(BigInteger functionIndex) implements Section {
         static StartSection from(BinaryReader binaryReader) throws IOException {
-            final var functionIndex = binaryReader.u32().intValueExact();
+            final var functionIndex = binaryReader.u32();
 
             return new StartSection(functionIndex);
         }

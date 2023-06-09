@@ -1,4 +1,4 @@
-package jasm.instruction;
+package jasm.io;
 
 import static java.util.Collections.unmodifiableList;
 

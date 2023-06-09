@@ -1,8 +1,9 @@
 package jasm.binary;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
-import jasm.instruction.BinaryReader;
+import jasm.io.BinaryReader;
 
 public sealed interface Import permits Import.MemoryImport, Import.GlobalImport, Import.FuncImport, Import.TableImport {
 
@@ -12,10 +13,12 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
         final var type = binaryReader.u32().intValueExact();
 
         return switch (type) {
-            case 0x00 -> new FuncImport(module, name, binaryReader.u32().intValueExact());
-            case 0x01 -> new TableImport(module, name, binaryReader.u32().intValueExact());
+            case 0x00 -> new FuncImport(module, name, binaryReader.u32());
+            // case 0x01 -> new TableImport(module, name,
+            // binaryReader.u32().intValueExact());
             case 0x02 -> new MemoryImport(module, name, binaryReader.u32().intValueExact());
-            case 0x03 -> new GlobalImport(module, name, binaryReader.u32().intValueExact());
+            // case 0x03 -> new GlobalImport(module, name,
+            // binaryReader.u32().intValueExact());
             default -> throw new IllegalArgumentException("unexpected import type 0x%02x".formatted(type));
         };
     }
@@ -33,6 +36,6 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
     record TableImport(String module, String name, int tt) implements Import {
     }
 
-    record FuncImport(String module, String name, int x) implements Import {
+    record FuncImport(String module, String name, BigInteger x) implements Import {
     }
 }

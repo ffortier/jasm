@@ -80,21 +80,6 @@ class JavaEnum:
         ])
 
 
-@dataclass
-class NotImplemented:
-    classname: str
-    expr_name: str
-
-    def __str__(self) -> str:
-        return "\n".join([
-            f"record {self.expr_name}() implements {self.classname} {{",
-            f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ throw new UnsupportedOperationException(\"not implemented: {self.expr_name}\"); }}",
-            f"@Override public OpCode opCode() {{ return OpCode.{pc_to_upper(self.expr_name)}; }}",
-            f"@Override public ProgramState apply(ProgramState ps) {{ throw new UnsupportedOperationException(\"not implemented\"); }}",
-            f"}}",
-        ])
-
-
 def pc_to_upper(pc: str) -> list[str]:
     return "".join([f"_{ch}" if ch.isupper() else ch for ch in pc]).upper().lstrip("_")
 
@@ -107,39 +92,29 @@ def none_if_underscore(val: str):
     return "NONE" if val == "_" else val
 
 
-# https://webassembly.github.io/spec/core/syntax/instructions.html#numeric-instructions
 CONSTANTS = ["const"]
-INT_UNARY_OP = ["clz", "ctz", "popcnt"]
-INT_BINARY_OP = ["add", "sub", "mul", "div_u", "div_s", "rem_u",
-                 "rem_s", "and", "or", "xor", "shl", "shr_u", "shr_s", "rotl", "rotr"]
-FLOAT_UNARY_OP = ["abs", "neg", "sqrt", "ceil", "floor", "trunc", "nearest"]
-FLOAT_BINARY_OP = ["add", "sub", "mul", "div", "min", "max", "copysign"]
-INT_TEST_OP = ["eqz"]
-INT_COMPARISON_OP = ["eq", "ne", "lt_s", "lt_u",
-                     "gt_s", "gt_u", "le_u", "le_s", "ge_s", "ge_u"]
-FLOAT_COMPARISON_OP = ["eq", "ne", "lt", "gt", "le", "ge"]
 
 
-JAVA_TYPE_MAPPING = {
-    "i32": "Int",
-    "i32": "Int",
-    "u32": "Int",
-    "u32": "Int",
-    "s32": "Int",
-    "s32": "Int",
-    "i64": "Long",
-    "i64": "Long",
-    "u64": "Long",
-    "u64": "Long",
-    "s64": "Long",
-    "s64": "Long",
-    "f32": "Float",
-    "f64": "Double",
+JAVA_PRIMITIVE_MAPPING = {
+    "i32": "int",
+    "i32": "int",
+    "u32": "int",
+    "u32": "int",
+    "s32": "int",
+    "s32": "int",
+    "i64": "long",
+    "i64": "long",
+    "u64": "long",
+    "u64": "long",
+    "s64": "long",
+    "s64": "long",
+    "f32": "float",
+    "f64": "double",
 }
 
 
 @dataclass
-class Nop:
+class DefaultOpCode:
     classname: str
     expr_name: str
 
@@ -148,7 +123,7 @@ class Nop:
             f"record {self.expr_name}() implements {self.classname} {{",
             f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(); }}",
             f"@Override public OpCode opCode() {{ return OpCode.{pc_to_upper(self.expr_name)}; }}",
-            f"@Override public ProgramState apply(ProgramState ps) {{ return ps; }}",
+            f"@Override public void accept(Visitor visitor) {{ visitor.visit(this); }}",
             f"}}",
         ])
 
@@ -160,10 +135,10 @@ class CallFunction:
 
     def __str__(self) -> str:
         return "\n".join([
-            f"record {self.expr_name}(int functionIndex) implements {self.classname} {{",
-            f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(code.u32().intValue()); }}",
+            f"record {self.expr_name}(BigInteger x) implements {self.classname} {{",
+            f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(code.u32()); }}",
             f"@Override public OpCode opCode() {{ return OpCode.{pc_to_upper(self.expr_name)}; }}",
-            f"@Override public ProgramState apply(ProgramState ps) {{ throw new UnsupportedOperationException(\"not implemented\"); }}",
+            f"@Override public void accept(Visitor visitor) {{ visitor.visit(this); }}",
             f"}}",
         ])
 
@@ -176,14 +151,13 @@ class NumericConstant:
     num_size: int
 
     def __str__(self) -> str:
-        java_num_type = JAVA_TYPE_MAPPING[f'{self.num_type}{self.num_size}']
-        java_num_primitive = java_num_type.lower()
+        java_num_primitive = JAVA_PRIMITIVE_MAPPING[f'{self.num_type}{self.num_size}']
 
         return "\n".join([
             f"record {self.expr_name}({java_num_primitive} value) implements {self.classname} {{",
             f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(code.{self.num_type}{self.num_size}()); }}",
             f"@Override public OpCode opCode() {{ return OpCode.{pc_to_upper(self.expr_name)}; }}",
-            f"@Override public ProgramState apply(ProgramState ps) {{ throw new UnsupportedOperationException(\"not implemented\"); }}",
+            f"@Override public void accept(Visitor visitor) {{ visitor.visit(this); }}",
             f"}}",
         ])
 
@@ -192,7 +166,7 @@ def make_numeric_instruction(classname: str, expr_name: str, num_type: str, num_
     if op_type in CONSTANTS:
         return NumericConstant(classname, expr_name, num_type, int(num_size))
 
-    return NotImplemented(classname, expr_name)
+    return DefaultOpCode(classname, expr_name)
 
 
 def make_instruction_rec(classname: str, expr_name: str, wat_name: str) -> any:
@@ -203,9 +177,8 @@ def make_instruction_rec(classname: str, expr_name: str, wat_name: str) -> any:
         return make_numeric_instruction(classname, expr_name, **numeric_expr.groupdict())
 
     match wat_name:
-        case "nop" | "nop_for_testing" | "end": return Nop(classname, expr_name)
         case "call": return CallFunction(classname, expr_name)
-        case _: return NotImplemented(classname, expr_name)
+        case _: return DefaultOpCode(classname, expr_name)
 
 
 def main(args: dict[str, str]):
@@ -280,12 +253,13 @@ def main(args: dict[str, str]):
             " */",
             f"package {args['java_package']};",
             f"",
-            f"import java.io.IOException;"
+            f"import java.io.IOException;",
+            f"import java.math.BigInteger;",
             f"import java.util.List;",
             f"import java.util.Optional;",
-            f"import java.util.function.UnaryOperator;",
+            f"import jasm.io.BinaryReader;",
             f"",
-            f"public interface {args['classname']} extends UnaryOperator<ProgramState> {{",
+            f"public interface {args['classname']} {{",
             f"static {args['classname']} next(BinaryReader code) throws IOException {{",
             f"    int binary = code.u8();",
             f"",
@@ -298,9 +272,14 @@ def main(args: dict[str, str]):
             f"    }};",
             f"}}",
             f"OpCode opCode();",
-        ]+[
+            f"void accept(Visitor visitor);",
+            f"interface Visitor {{"] + [
+                f"void visit({instructions_df['kExprName'][i].strip()} instr);" for i in instructions_df.index
+        ] + [
+            f"}}",
+        ] + [
             str(make_instruction_rec(args['classname'], instructions_df['kExprName'][i].strip(), instructions_df['watName'][i].strip().strip("\""))) for i in instructions_df.index
-        ]+[
+        ] + [
             str(opCode),
             f"",
             str(sig),

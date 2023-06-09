@@ -1,13 +1,19 @@
 package jasm.binary;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import jasm.instruction.BinaryReader;
+import jasm.common.Records;
+import jasm.io.BinaryReader;
+import jasm.runtime.Store;
 
-public class Main {
+public record Module(List<Section> sections) {
     private static final byte[] WASM_HEADER = { 0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00 };
 
     public static void main(String[] args) throws Exception {
@@ -18,15 +24,25 @@ public class Main {
         }
 
         try (final var in = Files.newInputStream(moduleFile)) {
-            final var reader = new BinaryReader(in);
-            readWasmHeader(reader);
-
-            while (!reader.eof()) {
-                final var section = Section.construct(reader);
-
-                System.out.println(section);
-            }
+            System.out.println(Records.toTextBlock(Module.from(in)));
         }
+    }
+
+    public static Module from(InputStream in) throws IOException {
+        final var reader = new BinaryReader(in);
+        readWasmHeader(reader);
+
+        List<Section> sections = new ArrayList<>();
+
+        while (!reader.eof()) {
+            sections.add(Section.construct(reader));
+        }
+
+        return new Module(Collections.unmodifiableList(sections));
+    }
+
+    public void populateStore(Store store) {
+
     }
 
     private static void readWasmHeader(BinaryReader reader) throws IOException {
