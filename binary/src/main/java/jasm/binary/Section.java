@@ -1,7 +1,6 @@
 package jasm.binary;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.List;
 
 import jasm.io.BinaryReader;
@@ -27,7 +26,7 @@ public sealed interface Section
             DataSection::from);
 
     static Section construct(BinaryReader reader) throws IOException {
-        final var sectionType = reader.u32().intValueExact();
+        final var sectionType = reader.u32(true);
         final var constructor = sectionType < Section.CONSTRUCTORS.size()
                 ? CONSTRUCTORS.get(sectionType)
                 : (Module.SectionConstructor<?>) ExtraSection::from;
@@ -64,9 +63,9 @@ public sealed interface Section
         }
     }
 
-    record FunctionSection(List<BigInteger> typeIndices) implements Section {
+    record FunctionSection(int[] typeIndices) implements Section {
         static FunctionSection from(BinaryReader binaryReader) throws IOException {
-            final var typeIndices = binaryReader.vec(BinaryReader::u32);
+            final var typeIndices = binaryReader.vec(BinaryReader::u32).stream().mapToInt(i -> i).toArray();
 
             return new FunctionSection(typeIndices);
         }
@@ -101,9 +100,9 @@ public sealed interface Section
         }
     }
 
-    record StartSection(BigInteger functionIndex) implements Section {
+    record StartSection(int functionIndex) implements Section {
         static StartSection from(BinaryReader binaryReader) throws IOException {
-            final var functionIndex = binaryReader.u32();
+            final var functionIndex = binaryReader.u32(true);
 
             return new StartSection(functionIndex);
         }

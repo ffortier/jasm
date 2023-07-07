@@ -1,7 +1,5 @@
 package jasm.jvm;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class JasmClassLoader extends ClassLoader {

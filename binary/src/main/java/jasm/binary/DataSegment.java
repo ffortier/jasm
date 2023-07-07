@@ -8,12 +8,12 @@ import jasm.instruction.Instruction;
 
 public interface DataSegment {
     static DataSegment construct(BinaryReader binaryReader) throws IOException {
-        final var type = binaryReader.u32().intValueExact();
+        final var type = binaryReader.u32(true);
 
         return switch (type) {
             case 0 -> Active.from(0, binaryReader);
             case 1 -> Passive.from(binaryReader);
-            case 3 -> Active.from(binaryReader.u32().intValueExact(), binaryReader);
+            case 3 -> Active.from(binaryReader.u32(true), binaryReader);
             default -> throw new IllegalArgumentException("Unexpected data segment type 0x%02x".formatted(type));
         };
     }
@@ -28,7 +28,7 @@ public interface DataSegment {
             }
 
             final var offset = ((Instruction.I32Const) expr.instructions().get(0)).value();
-            final var data = binaryReader.bytes(binaryReader.u32().intValueExact());
+            final var data = binaryReader.bytes(binaryReader.u32(true));
 
             return new Active(memory, offset, data);
         }

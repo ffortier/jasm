@@ -23,7 +23,7 @@ public sealed interface Code permits Code.Func, Code.Local, Code.Expression {
 
     record Local(int count, Type valueType) implements Code {
         static Local from(BinaryReader binaryReader) throws IOException {
-            final var count = binaryReader.u32().intValueExact();
+            final var count = binaryReader.u32(true);
             final var valueType = Type.construct(binaryReader);
 
             return new Local(count, valueType);

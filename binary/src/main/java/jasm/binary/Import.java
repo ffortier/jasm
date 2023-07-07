@@ -1,7 +1,6 @@
 package jasm.binary;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import jasm.io.BinaryReader;
 
@@ -10,15 +9,15 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
     static Import from(BinaryReader binaryReader) throws IOException {
         final var module = binaryReader.name();
         final var name = binaryReader.name();
-        final var type = binaryReader.u32().intValueExact();
+        final var type = binaryReader.u32(true);
 
         return switch (type) {
-            case 0x00 -> new FuncImport(module, name, binaryReader.u32());
+            case 0x00 -> new FuncImport(module, name, binaryReader.u32(true));
             // case 0x01 -> new TableImport(module, name,
-            // binaryReader.u32().intValueExact());
+            // binaryReader.u32(true));
             case 0x02 -> new MemoryImport(module, name, Limits.from(binaryReader));
             // case 0x03 -> new GlobalImport(module, name,
-            // binaryReader.u32().intValueExact());
+            // binaryReader.u32(true));
             default -> throw new IllegalArgumentException("unexpected import type 0x%02x".formatted(type));
         };
     }
@@ -27,11 +26,11 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
 
     String name();
 
-    record Limits(BigInteger min, BigInteger max) {
+    record Limits(int min, int max) {
         public static Limits from(BinaryReader reader) throws IOException {
-            final var hasMax = !reader.u32().equals(BigInteger.ZERO);
-            final var min = reader.u32();
-            final var max = hasMax ? reader.u32() : null;
+            final var hasMax = reader.u32() != 0;
+            final var min = reader.u32(true);
+            final var max = hasMax ? reader.u32(true) : null;
 
             return new Limits(min, max);
         }
@@ -46,6 +45,6 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
     record TableImport(String module, String name, int tt) implements Import {
     }
 
-    record FuncImport(String module, String name, BigInteger x) implements Import {
+    record FuncImport(String module, String name, int x) implements Import {
     }
 }

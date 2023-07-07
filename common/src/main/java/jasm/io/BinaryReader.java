@@ -28,7 +28,11 @@ public class BinaryReader {
         return bytes(available);
     }
 
-    public BigInteger u32() throws IOException {
+    public int u32() throws IOException {
+        return u32(true);
+    }
+
+    public int u32(boolean limitU31) throws IOException {
         var result = BigInteger.ZERO;
         int shift = 0;
 
@@ -41,7 +45,7 @@ public class BinaryReader {
                 if (result.compareTo(BigInteger.valueOf(0xffffffffl)) > 0) {
                     throw new IllegalStateException("Invalid u32");
                 }
-                return result;
+                return limitU31 ? result.intValueExact() : result.intValue();
             }
 
             shift += 7;
@@ -140,14 +144,14 @@ public class BinaryReader {
     }
 
     public String name() throws IOException {
-        final var size = u32().intValueExact();
+        final var size = u32(true);
         final var utf8 = bytes(size);
 
         return new String(utf8, 0, size, StandardCharsets.UTF_8);
     }
 
     public <T> List<T> vec(ElementReader<T> elementReader) throws IOException {
-        final var size = u32().intValueExact();
+        final var size = u32(true);
         final var vec = new ArrayList<T>(size);
 
         for (int i = 0; i < size; i++) {
@@ -166,7 +170,7 @@ public class BinaryReader {
     }
 
     public <R> R slice(ElementReader<R> func) throws IOException {
-        final var size = u32().intValueExact();
+        final var size = u32(true);
 
         assertAvailable(size);
 

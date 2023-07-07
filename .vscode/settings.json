@@ -6,12 +6,24 @@
         "editor.defaultFormatter": "ms-python.autopep8"
     },
     "python.formatting.provider": "none",
-    "java.project.referencedLibraries": [
-        "bazel-bin/external/maven/**/*.jar",
-        "bazel-bin/instruction/**/*.jar"
-    ],
+    "java.project.referencedLibraries": {
+        "include": [
+            "bazel-bin/external/maven/**/*.jar",
+            "bazel-bin/instruction/**/lib*.jar",
+        ],
+        "exclude": [
+            "bazel-bin/external/maven/**/header_*.jar",
+            "bazel-bin/external/maven/**/processed_*.jar"
+        ]
+    },
     "java.project.sourcePaths": [
-        "**/src/main/java",
-        "**/src/test/java",
+        "binary/src/main/java",
+        "jvm/src/main/java",
+        "runtime/src/main/java",
+        "vm/src/main/java",
+        "common/src/main/java"
+    ],
+    "cSpell.words": [
+        "jasm"
     ],
 }

@@ -8,7 +8,7 @@ import jasm.io.BinaryReader;
 
 public sealed interface Type permits Type.I32Type, Type.FunctionType {
     static Type construct(BinaryReader binaryReader) throws IOException {
-        final var index = binaryReader.u32().intValueExact();
+        final var index = binaryReader.u32(true);
         final var constructor = CONSTRUCTORS.get(index);
 
         if (constructor == null) {

@@ -1,7 +1,6 @@
 package jasm.jvm;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 
 public record ClassFile(ConstantPool[] constantPool) {
 

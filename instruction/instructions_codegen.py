@@ -135,8 +135,8 @@ class CallFunction:
 
     def __str__(self) -> str:
         return "\n".join([
-            f"record {self.expr_name}(BigInteger x) implements {self.classname} {{",
-            f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(code.u32()); }}",
+            f"record {self.expr_name}(int x) implements {self.classname} {{",
+            f"public static {self.expr_name} from(BinaryReader code) throws IOException {{ return new {self.expr_name}(code.u32(true)); }}",
             f"@Override public OpCode opCode() {{ return OpCode.{pc_to_upper(self.expr_name)}; }}",
             f"@Override public void accept(Visitor visitor) {{ visitor.visit(this); }}",
             f"}}",
