@@ -16,7 +16,7 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
             case 0x00 -> new FuncImport(module, name, binaryReader.u32());
             // case 0x01 -> new TableImport(module, name,
             // binaryReader.u32().intValueExact());
-            case 0x02 -> new MemoryImport(module, name, binaryReader.u32().intValueExact());
+            case 0x02 -> new MemoryImport(module, name, Limits.from(binaryReader));
             // case 0x03 -> new GlobalImport(module, name,
             // binaryReader.u32().intValueExact());
             default -> throw new IllegalArgumentException("unexpected import type 0x%02x".formatted(type));
@@ -27,7 +27,17 @@ public sealed interface Import permits Import.MemoryImport, Import.GlobalImport,
 
     String name();
 
-    record MemoryImport(String module, String name, int mt) implements Import {
+    record Limits(BigInteger min, BigInteger max) {
+        public static Limits from(BinaryReader reader) throws IOException {
+            final var hasMax = !reader.u32().equals(BigInteger.ZERO);
+            final var min = reader.u32();
+            final var max = hasMax ? reader.u32() : null;
+
+            return new Limits(min, max);
+        }
+    }
+
+    record MemoryImport(String module, String name, Limits limits) implements Import {
     }
 
     record GlobalImport(String module, String name, int gt) implements Import {

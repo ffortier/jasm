@@ -30,33 +30,36 @@ public class Records {
             final var shift = indent.repeat(level);
             try {
                 final var value = component.getAccessor().invoke(record);
-                final var nested = value.getClass();
+                if (value != null) {
+                    final var nested = value.getClass();
 
-                if (nested.isRecord()) {
-                    lines.add(String.format("%s%s%s -> %s", shift, indent, name, nested.getSimpleName()));
-                    lines.add(toTextBlock(level + 2, (Record) value, indent));
-                    continue;
-                }
+                    if (nested.isRecord()) {
+                        lines.add(String.format("%s%s%s -> %s", shift, indent, name, nested.getSimpleName()));
+                        lines.add(toTextBlock(level + 2, (Record) value, indent));
+                        continue;
+                    }
 
-                if (value instanceof Collection<?> collection) {
-                    final var it = collection.iterator();
+                    if (value instanceof Collection<?> collection) {
+                        final var it = collection.iterator();
 
-                    if (it.hasNext()) {
-                        final var item = it.next();
+                        if (it.hasNext()) {
+                            final var item = it.next();
 
-                        if (item != null && item.getClass().isRecord()) {
-                            lines.add(String.format("%s%s%s = [", shift, indent, name));
-                            lines.add(String.format("%s%s -> %s", shift, indent, item.getClass().getSimpleName()));
-                            lines.add(toTextBlock(level + 2, (Record) item, indent));
+                            if (item != null && item.getClass().isRecord()) {
+                                lines.add(String.format("%s%s%s = [", shift, indent, name));
+                                lines.add(String.format("%s%s -> %s", shift, indent, item.getClass().getSimpleName()));
+                                lines.add(toTextBlock(level + 2, (Record) item, indent));
 
-                            while (it.hasNext()) {
-                                final var next = it.next();
-                                lines.add(String.format("%s%s -> %s", shift, indent, next.getClass().getSimpleName()));
-                                lines.add(toTextBlock(level + 2, (Record) next, indent));
+                                while (it.hasNext()) {
+                                    final var next = it.next();
+                                    lines.add(String.format("%s%s -> %s", shift, indent,
+                                            next.getClass().getSimpleName()));
+                                    lines.add(toTextBlock(level + 2, (Record) next, indent));
+                                }
+                                lines.add(String.format("%s%s]", shift, indent));
+
+                                continue;
                             }
-                            lines.add(String.format("%s%s]", shift, indent));
-
-                            continue;
                         }
                     }
                 }

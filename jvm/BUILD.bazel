@@ -1,0 +1,29 @@
+load("@rules_jvm_external//:defs.bzl", "artifact")
+
+java_library(
+    name = "jvm",
+    srcs = glob(
+        ["src/main/java/**/*.java"],
+        exclude = ["src/main/java/jasm/jvm/Main.java"],
+    ),
+    visibility = ["//visibility:public"],
+    exports = [
+        "//instruction",
+        "//runtime",
+    ],
+    deps = [
+        "//instruction",
+        "//runtime",
+        artifact("org.ow2.asm:asm"),
+    ],
+)
+
+java_binary(
+    name = "jvm_main",
+    srcs = ["src/main/java/jasm/jvm/Main.java"],
+    main_class = "jasm.jvm.Main",
+    deps = [
+        ":jvm",
+        artifact("org.ow2.asm:asm"),
+    ],
+)
