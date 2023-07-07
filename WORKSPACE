@@ -1,3 +1,7 @@
+########################################
+# Python
+########################################
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -29,9 +33,9 @@ load("@pypi//:requirements.bzl", "install_deps")
 
 install_deps()
 
-load("//third_party/v8:deps.bzl", "establish_v8_deps")
-
-establish_v8_deps()
+########################################
+# Java + maven
+########################################
 
 RULES_JVM_EXTERNAL_TAG = "5.3"
 
@@ -59,3 +63,11 @@ establish_java_deps()
 load("@maven//:defs.bzl", "pinned_maven_install")
 
 pinned_maven_install()
+
+########################################
+# Additional third parties
+########################################
+
+load("//third_party/v8:deps.bzl", "establish_v8_deps")
+
+establish_v8_deps()
