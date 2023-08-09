@@ -24,6 +24,8 @@
         "common/src/main/java"
     ],
     "cSpell.words": [
-        "jasm"
+        "jasm",
+        "typeref"
     ],
+    "python.analysis.typeCheckingMode": "basic",
 }

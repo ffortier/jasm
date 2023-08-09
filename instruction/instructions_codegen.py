@@ -202,7 +202,7 @@ def main(args: dict[str, str]):
         simple_name="OpCode",
         variants=[
             JavaEnumVariant(
-                name=pc_to_upper(instructions_df["kExprName"][i]),
+                name=pc_to_upper(str(instructions_df["kExprName"][i])),
                 params=[
                     to_java_str(instructions_df["kExprName"][i].strip()),
                     instructions_df["binary"][i].strip(),
