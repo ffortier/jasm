@@ -1,0 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "java",
+    srcs = [":srcs"],
+    visibility = ["//instruction:__subpackages__"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["*.py"]),
+    visibility = ["//instruction:__subpackages__"],
+)

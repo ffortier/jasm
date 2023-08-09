@@ -1,29 +1,18 @@
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@pypi//:requirements.bzl", "requirement")
 
 java_library(
     name = "instruction",
-    srcs = [":instruction_java"] + glob(["src/main/java/**/*.java"]),
+    srcs = [":instruction_java"],
     visibility = ["//visibility:public"],
     deps = ["//common"],
 )
 
 py_binary(
     name = "instructions_codegen",
-    srcs = ["instructions_codegen.py"],
-    args = [
-        "-i",
-        "$(location :instructions_csv)",
-        "-o",
-        "%s/src/main/java/jasm/instruction/Instructions.java" % package_name(),
-        "-c",
-        "Instruction",
-        "-p",
-        "jasm.instruction",
-    ],
-    data = [":instructions_csv"],
-    tags = [
-        "manual",
-        "no-sandbox",
+    srcs = [
+        ":srcs",
+        "//instruction/java",
     ],
     deps = [
         requirement("pandas"),
@@ -52,4 +41,25 @@ genrule(
     outs = ["instructions.csv"],
     cmd = "$(location :wasm_opcodes) > $@",
     tools = [":wasm_opcodes"],
+)
+
+sh_test(
+    name = "mypy",
+    srcs = ["mypy.sh"],
+    args = [
+        "--config-file",
+        "$(location mypy.ini)",
+        "$(locations :srcs)",
+    ],
+    data = [
+        "mypy.ini",
+        ":srcs",
+        "//instruction/java:srcs",
+    ],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["*.py"]),
+    visibility = ["//instruction:__subpackages__"],
 )
