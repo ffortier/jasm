@@ -40,7 +40,7 @@ class JavaEnumVariant:
 @dataclass
 class JavaClassConstructor:
     name: str
-    params: list[(str, str)]
+    params: list[tuple[str, str]]
     body: list[str]
     modifiers: list[str] | None = None
 
@@ -80,7 +80,7 @@ class JavaEnum:
         ])
 
 
-def pc_to_upper(pc: str) -> list[str]:
+def pc_to_upper(pc: str) -> str:
     return "".join([f"_{ch}" if ch.isupper() else ch for ch in pc]).upper().lstrip("_")
 
 
@@ -169,7 +169,7 @@ def make_numeric_instruction(classname: str, expr_name: str, num_type: str, num_
     return DefaultOpCode(classname, expr_name)
 
 
-def make_instruction_rec(classname: str, expr_name: str, wat_name: str) -> any:
+def make_instruction_rec(classname: str, expr_name: str, wat_name: str):
     numeric_expr = re.match(
         r"^(?P<num_type>[fi])(?P<num_size>32|64)\.(?P<op_type>\w+)", wat_name)
 
@@ -242,8 +242,8 @@ def main(args: dict[str, str]):
         ]
     )
 
-    out_path = os.path.join(os.getenv("BUILD_WORKING_DIRECTORY"), args['output']) if os.getenv(
-        "BUILD_WORKING_DIRECTORY") is not None else args['output']
+    bwd = os.getenv("BUILD_WORKING_DIRECTORY")
+    out_path = os.path.join(bwd, args['output']) if bwd else args['output']
 
     with open(out_path, mode="w") as output_file:
         output_file.write("\n".join([

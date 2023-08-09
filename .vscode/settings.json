@@ -21,7 +21,8 @@
         "jvm/src/main/java",
         "runtime/src/main/java",
         "vm/src/main/java",
-        "common/src/main/java"
+        "common/src/main/java",
+        "basic/parser/src/main/java"
     ],
     "cSpell.words": [
         "jasm",
