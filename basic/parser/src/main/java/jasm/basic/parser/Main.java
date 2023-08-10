@@ -1,16 +1,20 @@
 package jasm.basic.parser;
 
-import static jasm.basic.parser.Parsers.prefix;
+import static jasm.basic.parser.BasicParsers.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Main {
-    public static void main(String[] args) {
-        final var input = new Input("hello world");
-        final var parser = prefix("hello")
-                .foldLeft(prefix(" ").many())
-                .join(prefix("world"));
+    public static void main(String[] args) throws IOException {
+        final var parser = block().many();
 
-        final var res = parser.run(input);
+        for (final var line : Files.readAllLines(Path.of(args[0]))) {
+            final var res = parser.run(new Input(line));
 
-        System.out.println(res.unwrap());
+            System.out.println(res.unwrap());
+        }
+
     }
 }

@@ -2,53 +2,70 @@ package jasm.basic.parser;
 
 import java.util.Objects;
 
-public record Result<T>(Input input, T value, String error) {
+public sealed interface Result<T> permits Result.Ok, Result.Error {
 
-    public Result {
-        Objects.requireNonNull(input, "input");
-    }
+    record Ok<T>(Input input, T value) implements Result<T> {
 
-    public <T1> Result<T1> map(Mapper<T, T1> success, Mapper<String, T1> error) {
-        if (isOk()) {
+        public Ok {
+            Objects.requireNonNull(input, "input");
+        }
+
+        @Override
+        public <T1> Result<T1> map(Mapper<T, T1> success, Mapper<String, T1> error) {
+            return map(success);
+        }
+
+        @Override
+        public <T1> Result<T1> map(Mapper<T, T1> success) {
             return success.apply(input, value);
         }
 
-        return error.apply(input, this.error);
+        @Override
+        public T unwrap() {
+            return value;
+        }
     }
 
-    public <T1> Result<T1> map(Mapper<T, T1> success) {
-        if (isOk()) {
-            return success.apply(input, value);
+    record Error<T>(Input input, String message) implements Result<T> {
+
+        public Error {
+            Objects.requireNonNull(input, "input");
         }
 
-        return Error(input, error);
+        @Override
+        public <T1> Result<T1> map(Mapper<T, T1> success, Mapper<String, T1> error) {
+            return error.apply(input, message);
+        }
+
+        @Override
+        public <T1> Result<T1> map(Mapper<T, T1> success) {
+            return new Error<>(input, message);
+        }
+
+        @Override
+        public T unwrap() {
+            throw new ParserException(input, message);
+        }
+
     }
 
-    public boolean isOk() {
-        return error == null;
+    <T1> Result<T1> map(Mapper<T, T1> success, Mapper<String, T1> error);
+
+    <T1> Result<T1> map(Mapper<T, T1> success);
+
+    T unwrap();
+
+    Input input();
+
+    static <T> Ok<T> ok(Input input, T value) {
+        return new Ok<>(input, value);
     }
 
-    public boolean isError() {
-        return error != null;
-    }
-
-    public static <T> Result<T> Ok(Input input, T value) {
-        return new Result<>(input, value, null);
-    }
-
-    public static <T> Result<T> Error(Input input, String error) {
-        return new Result<>(input, null, error);
+    static <T> Error<T> error(Input input, String message) {
+        return new Error<>(input, message);
     }
 
     public interface Mapper<T, T1> {
         Result<T1> apply(Input input, T value);
-    }
-
-    public T unwrap() {
-        if (isError()) {
-            throw new ParserException(error, input);
-        }
-
-        return value;
     }
 }

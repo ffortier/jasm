@@ -1,19 +1,20 @@
 package jasm.basic.parser;
 
-import static jasm.basic.parser.Result.Error;
-import static jasm.basic.parser.Result.Ok;
+import static jasm.basic.parser.Result.error;
+import static jasm.basic.parser.Result.ok;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 @FunctionalInterface
 public interface Parser<T> {
     Result<T> run(Input input);
 
     default <T1> Parser<T1> map(Function<T, T1> mapper) {
-        return input -> run(input).map((input1, value) -> Ok(input1, mapper.apply(value)));
+        return input -> run(input).map((input1, value) -> ok(input1, mapper.apply(value)));
     }
 
     default <T1> Parser<T1> bind(Function<T, Parser<T1>> mapper) {
@@ -26,26 +27,26 @@ public interface Parser<T> {
 
     default Parser<T> foldLeft(Parser<?> parser) {
         return input -> run(input).map((input1, value) -> parser.run(input1).map(
-                (input2, ignored) -> Ok(input2, value),
-                (input2, err) -> Error(input2, err)));
+                (input2, ignored) -> ok(input2, value),
+                (input2, err) -> error(input2, err)));
     }
 
     default <R> Parser<Tuple<T, R>> join(Parser<R> parser) {
         return input -> run(input).map(
                 (input1, left) -> parser.run(input1).map(
-                        (input2, right) -> Result.Ok(input2, Tuple.of(left, right)),
-                        (input2, err) -> Result.Error(input2, err)),
-                (input1, err) -> Result.Error(input1, err));
+                        (input2, right) -> Result.ok(input2, Tuple.of(left, right)),
+                        (input2, err) -> Result.error(input2, err)),
+                (input1, err) -> Result.error(input1, err));
     }
 
     default Parser<T> or(Parser<T> parser) {
-        return input -> run(input).map(Result::Ok, (input1, err) -> parser.run(input));
+        return input -> run(input).map(Result::ok, (input1, err) -> parser.run(input));
     }
 
     default Parser<Optional<T>> optional() {
         return input -> run(input).map(
-                (input1, value) -> Ok(input1, Optional.of(value)),
-                (input1, err) -> Ok(input1, Optional.empty()));
+                (input1, value) -> ok(input1, Optional.of(value)),
+                (input1, err) -> ok(input1, Optional.empty()));
     }
 
     default Parser<List<T>> many() {
@@ -54,22 +55,18 @@ public interface Parser<T> {
 
             var res = run(input);
 
-            while (res.isOk()) {
-                list.add(res.value());
-                res = run(res.input());
+            while (res instanceof Result.Ok<T> ok) {
+                list.add(ok.value());
+                res = run(ok.input());
             }
 
-            return Ok(res.input(), list);
+            return ok(res.input(), list);
         };
     }
 
-    default Parser<List<T>> manyExact(int count) {
-        return input -> many().run(input).map((input1, value) -> {
-            if (value.size() != count) {
-                return Error(input, "expected exactly %d elements but found %d".formatted(count, value.size()));
-            }
-
-            return Ok(input1, value);
-        }, (input1, err) -> Error(input1, "unreachable, many should never fail"));
+    default Parser<T> check(Predicate<T> predicate, Function<T, String> error) {
+        return input -> run(input).map((input1, value) -> predicate.test(value)
+                ? ok(input1, value)
+                : error(input, error.apply(value)));
     }
 }

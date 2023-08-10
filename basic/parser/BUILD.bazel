@@ -1,5 +1,7 @@
 java_binary(
     name = "parser",
     srcs = glob(["src/main/java/**/*.java"]),
+    args = ["$(location //basic/examples:hello.bas)"],
+    data = ["//basic/examples:hello.bas"],
     main_class = "jasm.basic.parser.Main",
 )

@@ -26,7 +26,8 @@
     ],
     "cSpell.words": [
         "jasm",
-        "typeref"
+        "typeref",
+        "whitespaces"
     ],
     "python.analysis.typeCheckingMode": "basic",
 }
