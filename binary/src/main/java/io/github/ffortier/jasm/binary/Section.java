@@ -32,47 +32,51 @@ public sealed interface Section permits
         }
 
         final var size = leb128(in);
-        final var sectionData = ByteBuffer.wrap(in.readNBytes(size));
+        final var bb = ByteBuffer.wrap(in.readNBytes(size));
 
         final var section = switch (sectionId) {
-            case 0 -> CustomSection.read(sectionData);
-            case 1 -> TypeSection.read(sectionData);
-            case 2 -> ImportSection.read(sectionData);
-            case 3 -> FunctionSection.read(sectionData);
-            case 4 -> TableSection.read(sectionData);
-            case 5 -> MemorySection.read(sectionData);
-            case 6 -> GlobalSection.read(sectionData);
-            case 7 -> ExportSection.read(sectionData);
-            case 8 -> StartSection.read(sectionData);
-            case 9 -> ElementSection.read(sectionData);
-            case 10 -> CodeSection.read(sectionData);
-            case 11 -> DataSection.read(sectionData);
-            case 12 -> DataCountSection.read(sectionData);
+            case 0 -> CustomSection.read(bb);
+            case 1 -> TypeSection.read(bb);
+            case 2 -> ImportSection.read(bb);
+            case 3 -> FunctionSection.read(bb);
+            case 4 -> TableSection.read(bb);
+            case 5 -> MemorySection.read(bb);
+            case 6 -> GlobalSection.read(bb);
+            case 7 -> ExportSection.read(bb);
+            case 8 -> StartSection.read(bb);
+            case 9 -> ElementSection.read(bb);
+            case 10 -> CodeSection.read(bb);
+            case 11 -> DataSection.read(bb);
+            case 12 -> DataCountSection.read(bb);
             default -> throw new UnsupportedOperationException("Unknown section id %d".formatted(sectionId));
         };
 
         return Optional.of(section);
     }
 
+    private static <T extends Section> T notImplemented(Class<T> sectionType) {
+        throw new UnsupportedOperationException("Not implemented %s".formatted(sectionType.getName()));
+    }
+
     record CustomSection() implements Section {
-        public static CustomSection read(ByteBuffer sectionData) {
-            return new CustomSection();
+        public static CustomSection read(ByteBuffer bb) {
+            return notImplemented(CustomSection.class);
         }
     }
 
     record TypeSection(List<FuncType> types) implements Section {
-        public static TypeSection read(ByteBuffer sectionData) {
-            final var len = leb128(sectionData);
+        public static TypeSection read(ByteBuffer bb) {
+            final var len = leb128(bb);
             final var types = new ArrayList<FuncType>();
 
             for (int i = 0; i < len; i++) {
-                final var typeId = sectionData.get();
+                final var typeId = bb.get();
 
                 if (typeId != 0x60) {
                     throw new UnsupportedOperationException("Unsupported type with id %02x".formatted(typeId));
                 }
 
-                types.add(FuncType.read(sectionData));
+                types.add(FuncType.read(bb));
             }
 
             return new TypeSection(unmodifiableList(types));
@@ -80,75 +84,90 @@ public sealed interface Section permits
     }
 
     record ImportSection(List<Import> imports) implements Section {
-        public static ImportSection read(ByteBuffer sectionData) {
-            final var len = leb128(sectionData);
+        public static ImportSection read(ByteBuffer bb) {
+            final var len = leb128(bb);
             final var imports = new ArrayList<Import>();
 
             for (int i = 0; i < len; i++) {
-                imports.add(Import.read(sectionData));
+                imports.add(Import.read(bb));
             }
 
             return new ImportSection(unmodifiableList(imports));
         }
     }
 
-    record FunctionSection() implements Section {
-        public static FunctionSection read(ByteBuffer sectionData) {
-            return new FunctionSection();
+    record FunctionSection(List<Index.TypeIdx> typeIndices) implements Section {
+        public static FunctionSection read(ByteBuffer bb) {
+            final var typeIndices = new ArrayList<Index.TypeIdx>();
+            int len = leb128(bb);
+
+            for (int i = 0; i < len; i++) {
+                typeIndices.add(new Index.TypeIdx(leb128(bb)));
+            }
+
+            return new FunctionSection(typeIndices);
         }
     }
 
     record TableSection() implements Section {
-        public static TableSection read(ByteBuffer sectionData) {
-            return new TableSection();
+        public static TableSection read(ByteBuffer bb) {
+            return notImplemented(TableSection.class);
         }
     }
 
     record MemorySection() implements Section {
-        public static MemorySection read(ByteBuffer sectionData) {
-            return new MemorySection();
+        public static MemorySection read(ByteBuffer bb) {
+            return notImplemented(MemorySection.class);
         }
     }
 
     record GlobalSection() implements Section {
-        public static GlobalSection read(ByteBuffer sectionData) {
-            return new GlobalSection();
+        public static GlobalSection read(ByteBuffer bb) {
+            return notImplemented(GlobalSection.class);
         }
     }
 
-    record ExportSection() implements Section {
-        public static ExportSection read(ByteBuffer sectionData) {
-            return new ExportSection();
+    record ExportSection(List<Export> exports) implements Section {
+        public static ExportSection read(ByteBuffer bb) {
+            final var len = leb128(bb);
+            final var exports = new ArrayList<Export>();
+
+            for (int i = 0; i < len; i++) {
+                exports.add(Export.read(bb));
+            }
+
+            return new ExportSection(unmodifiableList(exports));
+
         }
     }
 
     record StartSection() implements Section {
-        public static StartSection read(ByteBuffer sectionData) {
-            return new StartSection();
+        public static StartSection read(ByteBuffer bb) {
+            return notImplemented(StartSection.class);
         }
     }
 
     record ElementSection() implements Section {
-        public static ElementSection read(ByteBuffer sectionData) {
-            return new ElementSection();
+        public static ElementSection read(ByteBuffer bb) {
+            return notImplemented(ElementSection.class);
         }
     }
 
     record CodeSection() implements Section {
-        public static CodeSection read(ByteBuffer sectionData) {
-            return new CodeSection();
+        public static CodeSection read(ByteBuffer bb) {
+            return notImplemented(CodeSection.class);
         }
     }
 
     record DataSection() implements Section {
-        public static DataSection read(ByteBuffer sectionData) {
-            return new DataSection();
+        public static DataSection read(ByteBuffer bb) {
+            return notImplemented(DataSection.class);
         }
     }
 
     record DataCountSection() implements Section {
-        public static DataCountSection read(ByteBuffer sectionData) {
-            return new DataCountSection();
+        public static DataCountSection read(ByteBuffer bb) {
+            return notImplemented(DataCountSection.class);
         }
     }
 }

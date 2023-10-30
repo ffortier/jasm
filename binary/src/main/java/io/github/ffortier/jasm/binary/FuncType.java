@@ -13,14 +13,14 @@ public record FuncType(List<ValType> args, List<ValType> rets) {
         final var args = new ArrayList<ValType>();
 
         for (int i = 0; i < argLen; i++) {
-            args.add(ValType.read(data.get()));
+            args.add(ValType.get(data.get()));
         }
 
         final var retLen = leb128(data);
         final var rets = new ArrayList<ValType>();
 
         for (int i = 0; i < retLen; i++) {
-            rets.add(ValType.read(data.get()));
+            rets.add(ValType.get(data.get()));
         }
 
         return new FuncType(unmodifiableList(args), unmodifiableList(rets));
