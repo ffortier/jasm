@@ -1,0 +1,11 @@
+load("//tools/java:defs.bzl", "java_project")
+
+java_project(
+    name = "binary",
+    test_data = [
+        "//jasm:hello.wasm",
+    ],
+    test_env = {
+        "TEST_HELLO_WASM": "$(location //jasm:hello.wasm)",
+    },
+)
