@@ -1,14 +1,14 @@
 package io.github.ffortier.jasm.binary;
 
-import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
-import static java.util.Collections.unmodifiableList;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
+import static java.util.Collections.unmodifiableList;
 
 public sealed interface Section permits
         Section.CustomSection,
@@ -153,9 +153,16 @@ public sealed interface Section permits
         }
     }
 
-    record CodeSection() implements Section {
+    record CodeSection(List<Code> codes) implements Section {
         public static CodeSection read(ByteBuffer bb) {
-            return notImplemented(CodeSection.class);
+            final var len = leb128(bb);
+            final var codes = new ArrayList<Code>();
+
+            for (int i = 0; i < len; i++) {
+                codes.add(Code.read(bb));
+            }
+
+            return new CodeSection(codes);
         }
     }
 

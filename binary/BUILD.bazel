@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_binary")
 load("//tools/java:defs.bzl", "java_project")
 
 java_project(
@@ -8,4 +9,25 @@ java_project(
     test_env = {
         "TEST_HELLO_WASM": "$(location //jasm:hello.wasm)",
     },
+)
+
+py_binary(
+    name = "prepreprocessor",
+    srcs = ["prepreprocessor.py"],
+)
+
+genrule(
+    name = "wasm_opcodes_h",
+    srcs = ["@v8_wasm_opcodes//file"],
+    outs = ["wasm_opcodes.h"],
+    cmd = "$(location :prepreprocessor) -o $@ $<",
+    tools = [":prepreprocessor"],
+)
+
+cc_binary(
+    name = "instruction",
+    srcs = [
+        "instruction.c",
+        ":wasm_opcodes_h",
+    ],
 )
