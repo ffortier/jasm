@@ -1,8 +1,8 @@
 package io.github.ffortier.jasm.binary;
 
-import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
-
 import java.nio.ByteBuffer;
+
+import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
 
 public record Limits(int min, int max) {
     public static Limits read(ByteBuffer bb) {

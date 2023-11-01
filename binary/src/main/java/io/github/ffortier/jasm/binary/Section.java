@@ -3,12 +3,12 @@ package io.github.ffortier.jasm.binary;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Optional;
 
 import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
-import static java.util.Collections.unmodifiableList;
+import static io.github.ffortier.jasm.binary.BinaryReader.vec;
 
 public sealed interface Section permits
         Section.CustomSection,
@@ -32,7 +32,9 @@ public sealed interface Section permits
         }
 
         final var size = leb128(in);
-        final var bb = ByteBuffer.wrap(in.readNBytes(size));
+        final var bb = ByteBuffer
+                .wrap(in.readNBytes(size))
+                .order(ByteOrder.LITTLE_ENDIAN);
 
         final var section = switch (sectionId) {
             case 0 -> CustomSection.read(bb);
@@ -66,78 +68,51 @@ public sealed interface Section permits
 
     record TypeSection(List<FuncType> types) implements Section {
         public static TypeSection read(ByteBuffer bb) {
-            final var len = leb128(bb);
-            final var types = new ArrayList<FuncType>();
-
-            for (int i = 0; i < len; i++) {
+            return new TypeSection(vec(bb, bbb -> {
                 final var typeId = bb.get();
 
                 if (typeId != 0x60) {
                     throw new UnsupportedOperationException("Unsupported type with id %02x".formatted(typeId));
                 }
 
-                types.add(FuncType.read(bb));
-            }
-
-            return new TypeSection(unmodifiableList(types));
+                return FuncType.read(bb);
+            }));
         }
     }
 
     record ImportSection(List<Import> imports) implements Section {
         public static ImportSection read(ByteBuffer bb) {
-            final var len = leb128(bb);
-            final var imports = new ArrayList<Import>();
-
-            for (int i = 0; i < len; i++) {
-                imports.add(Import.read(bb));
-            }
-
-            return new ImportSection(unmodifiableList(imports));
+            return new ImportSection(vec(bb, Import::read));
         }
     }
 
     record FunctionSection(List<Index.TypeIdx> typeIndices) implements Section {
         public static FunctionSection read(ByteBuffer bb) {
-            final var typeIndices = new ArrayList<Index.TypeIdx>();
-            int len = leb128(bb);
-
-            for (int i = 0; i < len; i++) {
-                typeIndices.add(new Index.TypeIdx(leb128(bb)));
-            }
-
-            return new FunctionSection(typeIndices);
+            return new FunctionSection(vec(bb, bbb -> new Index.TypeIdx(leb128(bbb))));
         }
     }
 
-    record TableSection() implements Section {
+    record TableSection(List<Table> tables) implements Section {
         public static TableSection read(ByteBuffer bb) {
-            return notImplemented(TableSection.class);
+            return new TableSection(vec(bb, Table::read));
         }
     }
 
-    record MemorySection() implements Section {
+    record MemorySection(List<Memory> memories) implements Section {
         public static MemorySection read(ByteBuffer bb) {
-            return notImplemented(MemorySection.class);
+            return new MemorySection(vec(bb, Memory::read));
         }
     }
 
     record GlobalSection() implements Section {
         public static GlobalSection read(ByteBuffer bb) {
-            return notImplemented(GlobalSection.class);
+            return Section.notImplemented(GlobalSection.class);
         }
     }
 
     record ExportSection(List<Export> exports) implements Section {
         public static ExportSection read(ByteBuffer bb) {
-            final var len = leb128(bb);
-            final var exports = new ArrayList<Export>();
-
-            for (int i = 0; i < len; i++) {
-                exports.add(Export.read(bb));
-            }
-
-            return new ExportSection(unmodifiableList(exports));
-
+            return new ExportSection(vec(bb, Export::read));
         }
     }
 
@@ -155,20 +130,13 @@ public sealed interface Section permits
 
     record CodeSection(List<Code> codes) implements Section {
         public static CodeSection read(ByteBuffer bb) {
-            final var len = leb128(bb);
-            final var codes = new ArrayList<Code>();
-
-            for (int i = 0; i < len; i++) {
-                codes.add(Code.read(bb));
-            }
-
-            return new CodeSection(codes);
+            return new CodeSection(vec(bb, Code::read));
         }
     }
 
-    record DataSection() implements Section {
+    record DataSection(List<Data> data) implements Section {
         public static DataSection read(ByteBuffer bb) {
-            return notImplemented(DataSection.class);
+            return new DataSection(vec(bb, Data::read));
         }
     }
 

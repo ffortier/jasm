@@ -1,11 +1,11 @@
 package io.github.ffortier.jasm.binary;
 
-import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
-import static java.util.Collections.unmodifiableList;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.github.ffortier.jasm.binary.BinaryReader.leb128;
+import static java.util.Collections.unmodifiableList;
 
 public record FuncType(List<ValType> args, List<ValType> rets) {
     public static FuncType read(ByteBuffer data) {

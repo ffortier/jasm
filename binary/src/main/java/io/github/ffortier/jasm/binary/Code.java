@@ -40,11 +40,4 @@ public record Code(Code.Func func) {
         }
     }
 
-    public record Expr(byte[] instr) {
-        public static Expr read(ByteBuffer bb) {
-            final var instr = new byte[bb.remaining()];
-            bb.get(instr);
-            return new Expr(instr);
-        }
-    }
 }

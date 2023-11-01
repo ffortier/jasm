@@ -1,11 +1,11 @@
 package io.github.ffortier.jasm.binary;
 
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.Test;
 
 public class WebAssemblyTest implements WithAssertions {
     private final WebAssembly parser = new WebAssembly();
@@ -19,4 +19,5 @@ public class WebAssemblyTest implements WithAssertions {
         System.out.println(mod);
         assertThat(mod.sections().size()).isGreaterThan(0);
     }
+
 }

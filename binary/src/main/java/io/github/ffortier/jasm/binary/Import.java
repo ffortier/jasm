@@ -1,8 +1,8 @@
 package io.github.ffortier.jasm.binary;
 
-import static io.github.ffortier.jasm.binary.BinaryReader.name;
-
 import java.nio.ByteBuffer;
+
+import static io.github.ffortier.jasm.binary.BinaryReader.name;
 
 public record Import(String mod, String nm, ImportDesc desc) {
 

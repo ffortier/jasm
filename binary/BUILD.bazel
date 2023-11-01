@@ -3,6 +3,7 @@ load("//tools/java:defs.bzl", "java_project")
 
 java_project(
     name = "binary",
+    additional_srcs = [":instruction_java"],
     test_data = [
         "//jasm:hello.wasm",
     ],
@@ -30,4 +31,11 @@ cc_binary(
         "instruction.c",
         ":wasm_opcodes_h",
     ],
+)
+
+genrule(
+    name = "instruction_java",
+    outs = ["src/main/java/io/github/ffortier/jasm/binary/Instruction.java"],
+    cmd = "mkdir -p $(RULEDIR)/src/main/java/io/github/ffortier/jasm/binary; $(location :instruction) > $@",
+    tools = [":instruction"],
 )
