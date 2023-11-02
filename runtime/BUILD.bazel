@@ -1,0 +1,6 @@
+load("//tools/java:defs.bzl", "java_project")
+
+java_project(
+    name = "runtime",
+    visibility = ["//jasm:__subpackages__"],
+)

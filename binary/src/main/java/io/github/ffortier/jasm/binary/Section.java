@@ -104,7 +104,7 @@ public sealed interface Section permits
         }
     }
 
-    record GlobalSection() implements Section {
+    record GlobalSection(List<Global> globals) implements Section {
         public static GlobalSection read(ByteBuffer bb) {
             return Section.notImplemented(GlobalSection.class);
         }
@@ -116,13 +116,13 @@ public sealed interface Section permits
         }
     }
 
-    record StartSection() implements Section {
+    record StartSection(Start start) implements Section {
         public static StartSection read(ByteBuffer bb) {
             return notImplemented(StartSection.class);
         }
     }
 
-    record ElementSection() implements Section {
+    record ElementSection(List<Element> elements) implements Section {
         public static ElementSection read(ByteBuffer bb) {
             return notImplemented(ElementSection.class);
         }

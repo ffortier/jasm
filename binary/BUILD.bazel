@@ -10,6 +10,7 @@ java_project(
     test_env = {
         "TEST_HELLO_WASM": "$(location //jasm:hello.wasm)",
     },
+    visibility = ["//jasm:__subpackages__"],
 )
 
 py_binary(
